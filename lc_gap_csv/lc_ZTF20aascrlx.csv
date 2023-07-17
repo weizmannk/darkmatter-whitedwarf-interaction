@@ -1,0 +1,2 @@
+name,ra,dec,jd,isdiffpos,magpsf,sigmapsf,filter,magzpsci,magzpsciunc,programid,field,rcid,pid,sgscore1,sgscore2,sgscore3,distpsnr1,distpsnr2,distpsnr3
+ZTF20aascrlx,205.1618263,40.7615452,2458911.9670023,t,19.825485229492188,0.20240433514118195,r,26.25548553466797,1.6195999705814756e-05,1,717,35,1157467003515,-999.0,-999.0,-999.0,-999.0,-999.0,-999.0
