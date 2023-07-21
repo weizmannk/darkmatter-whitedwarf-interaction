@@ -1,6 +1,8 @@
 import os
 from tqdm.auto import tqdm
 
+
+from astropy.table import  Table
 from astropy.time import Time, TimeDelta
 import pandas as pd
 import numpy as np
@@ -14,6 +16,8 @@ import matplotlib.pyplot as plt
 
 targetdir ='../ZTF'
 datapath = f"{os.path.dirname(os.path.realpath('__file__'))}/lc_gap_csv"
+
+Ia_dir =  f"{os.path.dirname(os.path.realpath('__file__'))}/ZTF_Gap_Trasien_classifications.dat"
 
 
 def data_filename(datapath):
@@ -57,6 +61,7 @@ def sufficient_statistics(t, mag, magerr):
     vector = np.array([Sxy, Sy])
     return Matrix, vector
 
+
 def photometry(targetdir, name, program_ids, forcedfile):
 
     figsdir = "%s/%s" % (targetdir, "figures")
@@ -97,24 +102,42 @@ def photometry(targetdir, name, program_ids, forcedfile):
         else:
             band =i
             
-        indx   = np.where(data['magpsf'].iloc[band] == np.min(data['magpsf'].iloc[band]))[0][0]
-        t_peak = data['jd'][indx]
-        y_peak =  np.min(data['magpsf'].iloc[band])
-        
-        tab = data.iloc[band][data['jd'].iloc[band] >= t_peak]
+        if len(band) >3  :
+                
+            indx   = np.where(data['magpsf'].iloc[band] == np.min(data['magpsf'].iloc[band]))[0][0]
+            t_peak = data['jd'][indx]
+            y_peak =  np.min(data['magpsf'].iloc[band])
+            
+            tab = data.iloc[band][data['jd'].iloc[band] >= t_peak]
+            
+            t  = daysago[band].value
+            y  = data['magpsf'].iloc[band]
+            dy = data['sigmapsf'].iloc[band]
+            
+            # =============================================================================
+            # sufficient statistics to get the likelihood maximun, bayesian approach 
+            # =============================================================================
+            M, v = sufficient_statistics(t, y, dy)
+            x1, x2 = np.linalg.solve(M, v)
+            max_likelihood = x1*t + x2
 
-        if filt == 'r':
-            plt.errorbar(daysago[r].value, data['magpsf'].iloc[r], yerr=data['sigmapsf'].iloc[r],
-                    fmt='.', color='r', label='r-band')
-        
-        elif filt == 'g':
-            plt.errorbar(daysago[g].value, data['magpsf'].iloc[g], yerr=data['sigmapsf'].iloc[g],
-                    fmt='.', color='g', label='g-band')
-        else:
-            if len(i) != 0:
+            if filt == 'r':
+                
+                plt.errorbar(daysago[r].value, data['magpsf'].iloc[r], yerr=data['sigmapsf'].iloc[r],
+                        fmt='.', color='r', label='r-band')
+                plt.plot(t, max_likelihood, color='r', linewidth=2, alpha=0.5, label="Max likelihood")
+            
+            elif filt == 'g':
+                plt.errorbar(daysago[g].value, data['magpsf'].iloc[g], yerr=data['sigmapsf'].iloc[g],
+                        fmt='.', color='g', label='g-band')
+                plt.plot(t, max_likelihood, color='g', linewidth=2, alpha=0.5, label="Max likelihood")
+                
+            else:
+                #if len(i) != 0:
                 plt.errorbar(daysago[i].value, data['magpsf'].iloc[i], yerr=data['sigmapsf'].iloc[i],
-                             fmt='.', color='goldenrod', label='i-band')
-        
+                                fmt='.', color='goldenrod', label='i-band')
+                plt.plot(t, max_likelihood, color='goldenrod',  linewidth=2, alpha=0.5, label="Max likelihood")
+            
     #plt.ylim(23.0, 18.0)
     #plt.xlim(200, 0)
     plt.title(name)
@@ -133,19 +156,47 @@ def photometry(targetdir, name, program_ids, forcedfile):
         
 
 
-
-
 program_ids = [1,2,3]
 ztf_files = data_filename(datapath)
+classified_data = Table.read(Ia_dir, format='ascii.fast_tab')
 
+Ia_sne  = 0
+for i in range(len(classified_data)):
+    if 'Ia' in classified_data['classification'][i]:
+        Ia_sne+=1
+
+unclassified =  len(ztf_files) - len(classified_data)
+classified   = len(classified_data)
+
+obj= ['classified', 'unclassified', 'classified as Ia']
+X = np.arange(len(obj))
+
+estimation =  []
+
+fig = plt.figure(figsize=(8,6))
+    
+    
+plt.title('Classified vs Unclassified')
+plt.grid(True)
+
+plt.xlabel('Time since first ZTF detection [days]')
+plt.ylabel('absolute magnitude (AB)')
+plotname = os.path.join(figsdir, '%s.png' % name)
+plt.savefig(plotname)
+plt.grid()
+plt.legend(loc='best')
+plt.close()
+"""
 with tqdm(total=len(ztf_files)) as progress:
     for forcedfile in ztf_files:
         name = forcedfile.split('/')[-1].split('.')[0].split('_')[-1]
+        if name in class_as_Ia_sne['source_name']:
         
-        photometry(targetdir=targetdir, name=name, program_ids=program_ids, forcedfile=forcedfile)
+            photometry(targetdir=targetdir, name=name, program_ids=program_ids, forcedfile=forcedfile)
 
-        #data = data.sort_values("jd", ascending=True)
-        #firstdate_ztf  = np.min(data['jd'])
+            #data = data.sort_values("jd", ascending=True)
+            #firstdate_ztf  = np.min(data['jd'])
 
         progress.update()
         
+"""
