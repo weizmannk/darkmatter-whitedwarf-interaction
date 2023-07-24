@@ -37,6 +37,10 @@ source_name =[]
 ob_id = []
 prob = []
 
+ra = []
+dec = []
+redshift = []
+
 Fritz_link = []
 
 s =0
@@ -54,15 +58,21 @@ with tqdm(total=len(ztf_files)) as progress:
 
         r = requests.get(url, headers=headers)
         data_out = r.json()['data']
-        
-        if 'classifications' in data_out and len(data_out['classifications']) != 0:
-            print(data_out['classifications'])
-            
+                  
+        if 'classifications' in data_out  and  len(data_out['classifications']) != 0:
+
+            print(data_out)
             source_name.append(name)
+            
+            ra.append(data_out['ra'])
+            dec.append(data_out['dec'])
+            redshift.append(data_out['redshift'])
+            
             ob_id.append(data_out['classifications'][0]['obj_id'])
             classification.append(data_out['classifications'][0]['classification'])
+
             prob.append(data_out['classifications'][0]['probability'])
-            
+         
             if name == data_out['classifications'][0]['obj_id']:
                 URL = urllib.parse.urljoin(host, f'source/{name}')
                 Fritz_link.append(URL)
@@ -70,10 +80,12 @@ with tqdm(total=len(ztf_files)) as progress:
                 Fritz_link.append(f"{name} != {ob_id}")
                 s+=1
                 
-            if 'Ia' in data_out['classifications'][0]['classification']:
-                Ia_number.append(data_out['classifications'][0]['classification'])
+            #if 'Ia' in data_out['classifications'][0]['classification']:
+            #    Ia_number.append(data_out['classifications'][0]['classification'])
             
             print(data_out)
+
+            
             
             del name, endpoint, url, headers, r, data_out, URL
         progress.update()
@@ -88,9 +100,9 @@ with tqdm(total=len(ztf_files)) as progress:
     print(f"The number of Objetcs classified as a Ia supernovae is :  {len(Ia_number)}\n")
     print("=========================================================================\n")
     
-    table_transient = Table({'source_name':source_name, 'classification': classification, 'probability':prob, 'fritz_link':Fritz_link})
+    table_transient = Table({'source_name':source_name, 'classification': classification, 'probability':prob, 'ra':ra, 'dec':dec, 'redshift': redshift, 'fritz_link':Fritz_link})
     
-    table_transient.write(f"{outdir}/ZTF_Gap_Trasien_classifications_1.dat", format='ascii.tab', overwrite=True)
+    table_transient.write(f"{outdir}/ZTF_Gap_Trasient_unclassifications.dat", format='ascii.tab', overwrite=True)
             
         
 
