@@ -94,7 +94,7 @@ sax[0].set_xlabel('peak mag')
 sax[0].get_yaxis().set_visible(False)
 
 sax[1].legend(loc='best')
-sax[1].set_xlabel('readshift distribustion')
+sax[1].set_xlabel('redshift distribustion')
 sax[1].get_yaxis().set_visible(False)
 
 
