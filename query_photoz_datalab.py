@@ -53,7 +53,8 @@ def query_coords_ls(ra,dec,radius_arcsec=5,
         # Print the results
         print("z_phot_median, z_phot_std, z_phot_l95, ra, dec, type, flux_z, sep_arcsec")
         for r in result:
-            print(", ".join([str(x) for x in r])) 
+            print(", ".join([str(x) for x in r]))
+            print("\n")
         
         return result
 
@@ -80,7 +81,7 @@ if __name__ == '__main__':
     """
 
 
-unclassified_data = pd.read_csv(f'{datapath}/unclassified_lc_gap_all.csv')[1:2]
+unclassified_data = pd.read_csv(f'{datapath}/unclassified_lc_gap_all.csv')
 unclassified_data.groupby('name').ngroups
 
 ra  = unclassified_data.groupby(['name']).apply(lambda x: x['ra'].median())
@@ -96,23 +97,36 @@ z_phot_std    = []
 z_phot_l95    = []
 ra_photz      = []
 dec_photz     = []
-type_data     = []
+type_galaxy     = []
 flux_z        = [] 
 sep_arcsec    = []
 
 with tqdm(total=unclassified_data.groupby('name').ngroups) as progress:
     for name in unclassified_data['name'].unique():
         # result output "z_phot_median, z_phot_std, z_phot_l95, ra, dec, type, flux_z, sep_arcsec"
-        result = query_coords_ls(ra[name], dec[name], radius_arcsec=search_rad)[0]
+        result = query_coords_ls(ra[name], dec[name], radius_arcsec=search_rad)
+        if len(result)!=0:
+            result = result[0]
+            galaxy_type =  result[5]
+            if galaxy_type != "PSF":
         
-        source_name.append(name)
-        z_phot_median.append(result[0])
-        z_phot_std.append(result[1])
-        z_phot_l95.append(result[2])
-        ra_photz.append(result[3])
-        dec_photz.append(result[4])
-        type_data.append(result[5])
-        flux_z.append(result[6])
-        sep_arcsec.append(result[7])
+                source_name.append(name)
+                z_phot_median.append(result[0])
+                z_phot_std.append(result[1])
+                z_phot_l95.append(result[2])
+                ra_photz.append(result[3])
+                dec_photz.append(result[4])
+                type_galaxy.append(galaxy_type)
+                flux_z.append(result[6])
+                sep_arcsec.append(result[7])
         
-        
+        del result
+        progress.update()
+            
+    
+    table = {"name":source_name, "z_phot_median":z_phot_median, "z_phot_std":z_phot_std, "z_phot_l95":z_phot_l95, 
+             "ra":ra_photz, "dec":dec_photz, "type":type_galaxy, "flux_z":flux_z, "sep_arcsec":sep_arcsec
+            }
+    
+    df  = pd.DataFrame.from_dict(table)
+    df.to_csv(f"{targetdir}/photoz_gap_unclassified_tansients_final.csv")
