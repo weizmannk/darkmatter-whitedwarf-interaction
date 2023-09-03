@@ -24,7 +24,7 @@ def data_filename(datapath):
     
     return glob.glob(datapath+'/**/*.csv', recursive=True)
 
-
+    
 
 classification_dir =  f"{os.path.dirname(os.path.realpath('__file__'))}/classified_unclassified_objet/classified_lc_gap_all.csv"
 classified_data    = pd.read_csv(classification_dir) 
@@ -44,7 +44,7 @@ with tqdm(total=len(ztf_files)) as progress:
             dict_file = {'jd' : data['jd'], 'mag' : data['magpsf'], 'mag_unc' : data['sigmapsf'], 'filters' : data['filter'], 'programid':data['programid']}
 
             df = pd.DataFrame(data=dict_file) 
-            df.sort_values("jd", ascending=False)
+            df.sort_values("jd", ascending=True)
             df.to_csv(f"{outdir}/lc_{name}" + '.csv')
 
             
