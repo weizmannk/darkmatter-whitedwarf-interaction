@@ -41,6 +41,9 @@ with tqdm(total=len(ztf_files)) as progress:
         
         if name in source_name:
             data = pd.read_csv(forcedfile)
+            
+            data = data.replace({'filter': {'r': 'ztfr', 'g': 'ztfg', 'i':'ztfi'}})
+            
             dict_file = {'jd' : data['jd'], 'mag' : data['magpsf'], 'mag_unc' : data['sigmapsf'], 'filters' : data['filter'], 'programid':data['programid']}
 
             df = pd.DataFrame(data=dict_file) 
@@ -52,7 +55,3 @@ with tqdm(total=len(ztf_files)) as progress:
 
         
         progress.update()
-
-        
-        
-            
