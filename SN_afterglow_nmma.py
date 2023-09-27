@@ -36,11 +36,11 @@ ztfi = data[data['filters'] =='ztfi']
 time_r = Time(ztfr['jd'], format='jd').mjd - mjd_min
 time_i = Time(ztfi['jd'], format='jd').mjd - mjd_min
 
-mag_r = ztfr['mag'].to_numpy
-mag_i = ztfi['mag'].to_numpy
+mag_r = ztfr['mag'].to_numpy()
+mag_i = ztfi['mag'].to_numpy()
 
-mag_err_r = ztfr['mag_unc'].to_numpy
-mag_err_i = ztfr['mag_unc'].to_numpy
+mag_err_r = ztfr['mag_unc'].to_numpy()
+mag_err_i = ztfi['mag_unc'].to_numpy()
 
 
 ###########
